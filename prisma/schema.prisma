@@ -1,0 +1,80 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("POSTGRES_PRISMA_URL")
+}
+
+model SnowballPaymentSchedule {
+  id                  String   @id @default(cuid())
+  paymentDate         DateTime @map("payment_due_date")
+  totalInitialBalance Float    @map("total_initial_balance")
+  monthTotalPayment   Float    @map("month_total_payment")
+  extraPayAmount      Float    @map("extra_pay_amount")
+  totalInterestPaid   Float    @map("total_interest_paid")
+  remainingBalance    Float    @map("balance_until_now")
+  data                Json     @map("data")
+  userId              String?
+  user                User?    @relation(fields: [userId], references: [id])
+
+  @@unique([userId, paymentDate])
+  @@map("snowball_payment_schedule")
+}
+
+model PaymentSchedule {
+  id                  String           @id @default(cuid())
+  paymentDate         DateTime         @map("payment_due_date")
+  title               String           @map("title")
+  monthlyInterestPaid Float            @map("monthly_interest")
+  monthlyPayment      Float            @map("monthly_payment")
+  remainingBalance    Float            @map("remaining_balance")
+  extraPayAmount      Float            @default(0) @map("extra_payment")
+  FinancialRecordId   String?          @map("financial_record_id")
+  createdAt           DateTime         @default(now()) @map("created_at")
+  updatedAt           DateTime         @updatedAt @map("updated_at")
+  userId              String?
+  minPayAmount        Float            @map("minimum_payment")
+  financialRecord     FinancialRecord? @relation(fields: [FinancialRecordId], references: [id])
+  user                User?            @relation(fields: [userId], references: [id])
+}
+
+model FinancialRecord {
+  id              String            @id @default(cuid())
+  title           String?
+  type            DebitType
+  periodicity     Periodicity
+  initialBalance  Float             @map("initial_outstanding_balance")
+  interestRate    Float             @map("interest_rate")
+  minPayAmount    Float             @map("minimum_payment")
+  payDueDate      DateTime          @map("payment_due_date")
+  extraPayAmount  Float             @default(0) @map("extra_payment")
+  createdAt       DateTime          @default(now()) @map("created_at")
+  updatedAt       DateTime          @updatedAt @map("updated_at")
+  userId          String?           @map("user_id")
+  user            User?             @relation(fields: [userId], references: [id])
+  PaymentSchedule PaymentSchedule[]
+}
+
+model User {
+  name            String
+  createdAt       DateTime                  @default(now()) @map("created_at")
+  email           String                    @unique
+  id              String                    @id @default(cuid())
+  password        String?
+  lastLogin       DateTime                  @default(now()) @map("last_login")
+  debts           FinancialRecord[]
+  paymentSchedule PaymentSchedule[]
+  snowball        SnowballPaymentSchedule[]
+
+  @@map("users")
+}
+
+enum DebitType {
+  CreditCard
+}
+
+enum Periodicity {
+  MONTH
+}

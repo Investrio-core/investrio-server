@@ -1,0 +1,41 @@
+{
+  "root": true,
+  "env": {
+    "node": true,
+    "commonjs": true
+  },
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint"],
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/eslint-recommended",
+    "plugin:@typescript-eslint/recommended"
+  ],
+  "rules": {
+    "no-console": "warn",
+    "indent": ["error", 2, { "SwitchCase": 1 }],
+    "eol-last": ["error", "always"],
+    "no-undef": "error",
+    "semi": "error",
+    "quotes": ["error", "single"],
+    "no-multiple-empty-lines": ["warn", {"max": 1}],
+    "semi-spacing": "error",
+    "no-return-assign": "error",
+    "arrow-parens": [2, "as-needed"],
+    "arrow-body-style": [1, "as-needed"],
+    "consistent-return": 0,
+    "space-before-function-paren": 0,
+    "vars-on-top": 0,
+    "max-len": [2, 200, 2],
+    "no-nested-ternary": 0,
+    "no-underscore-dangle": 0,
+    "no-use-before-define": 0,
+    "no-param-reassign": 0,
+    "no-plusplus": 0,
+    "no-unused-expressions": [2, { "allowShortCircuit": true, "allowTernary": true }],
+    "prefer-destructuring": 0,
+    "curly": "error",
+    "object-curly-spacing": ["error", "always"],
+    "comma-spacing": ["error", {"before": false, "after": true}]
+  }
+}
