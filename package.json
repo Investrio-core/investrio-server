@@ -6,7 +6,7 @@
   "scripts": {
     "start": "dotenv -- tsnd index.ts",
     "watch": "dotenv -- tsnd --respawn index.ts",
-    "vercel-build": "echo deployed"
+    "vercel-build": "npx prisma generate"
   },
   "repository": {
     "type": "git",
