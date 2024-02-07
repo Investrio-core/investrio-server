@@ -275,7 +275,6 @@ function calculateXPayment(
     for (const debt of debts) {
       const monthlyInterestRate = debt.interestRate / 12;
       const user_id = debt.userId;
-
       for (const { financialRecord, ...payment } of debt.PaymentSchedule) {
         const minPayAmount = payment.minPayAmount;
         const dateKey = payment.paymentDate;
@@ -398,7 +397,7 @@ function recalculateExtra(
 
     let balanceToPay = prevData
       ? prevData.remainingBalance
-      : data.remainingBalance - data.monthlyInterestPaid + data.minPayAmount;
+      : data.initialBalance;
     balanceToPay = toFixed(balanceToPay);
     const interest = toFixed(balanceToPay * data.monthlyInterestRate, 5);
 
@@ -437,9 +436,13 @@ function applyExtraPaymentsToBalance(
     if (prevPayment?.balance === 0) {
       break;
     }
-
+    
     const payment = payments[i];
-
+    
+    if (payment?.balance === 0) {
+      break;
+    }
+    
     if (i > 0) {
       prevPayment = payments[i - 1];
     }

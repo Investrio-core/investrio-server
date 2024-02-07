@@ -109,6 +109,7 @@ export default async (ctx: Koa.Context) => {
           minPayAmount: d.minPayAmount,
           periodicity: d.periodicity,
           payDueDate: d.payDueDate,
+          extraPayAmount: d.extraPayAmount,
           userId: d.userId,
         },
       })
