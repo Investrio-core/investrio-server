@@ -63,6 +63,7 @@ export interface Error {
 }
 
 export interface ICreateRecordRequestBody {
+  id?: string;
   userId: string;
   debtTitle: string;
   interestRate: number;

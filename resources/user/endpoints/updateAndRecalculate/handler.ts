@@ -1,4 +1,3 @@
-
 import Koa from 'koa';
 import { ICreateRecordRequestBody } from '../../interface';
 
@@ -35,44 +34,86 @@ export default async (ctx: Koa.Context) => {
     );
   }
 
-  const dataForCreation = body.map((debtRecord: ICreateRecordRequestBody) => ({
-    interestRate: debtRecord.interestRate,
-    title: debtRecord.debtTitle,
-    type: debtRecord.debtType,
-    periodicity: debtRecord.periodicity,
-    initialBalance: debtRecord.initialBalance,
-    minPayAmount: debtRecord.minPayAmount,
-    payDueDate: new Date(),
-    extraPayAmount: debtRecord.extraPayAmount,
-    userId: debtRecord.userId,
-  }));
+  const dataToUpdate = body.filter(el => {
+    if (el.id) {
+      return true;
+    }
+  });
 
-  await prisma.$transaction(dataForCreation.map(d => (
-    prisma.financialRecord.upsert({
-      where: {
-        title_userId: {
-          userId,
-          title: d.title
-        }
-      },
-      update: {
-        title: d.title,
-        initialBalance: d.initialBalance,
-        interestRate: d.interestRate,
-        minPayAmount: d.minPayAmount
-      },
-      create: {
-        title: d.title,
-        initialBalance: d.initialBalance,
-        interestRate: d.interestRate,
-        type: d.type,
-        minPayAmount:d.minPayAmount,
-        periodicity: d.periodicity,
-        payDueDate: d.payDueDate,
-        userId: d.userId,
+  if (dataToUpdate.length) {
+    await Promise.all(
+      dataToUpdate.map(d =>
+        prisma.financialRecord.update({
+          where: {
+            id: d.id,
+          },
+          data: {
+            title: d.debtTitle,
+            interestRate: d.interestRate,
+            initialBalance: d.initialBalance,
+            minPayAmount: d.minPayAmount,
+          },
+        })
+      )
+    );
+
+    await Promise.all(
+      dataToUpdate.map(d =>
+        prisma.paymentSchedule.deleteMany({
+          where: {
+            FinancialRecordId: d.id,
+          },
+        })
+      )
+    );
+  }
+
+  const dataForCreation = body
+    .filter(el => {
+      if (!el.id) {
+        return true;
       }
     })
-  )));
+    .map((debtRecord: ICreateRecordRequestBody) => ({
+      interestRate: debtRecord.interestRate,
+      title: debtRecord.debtTitle,
+      type: debtRecord.debtType,
+      periodicity: debtRecord.periodicity,
+      initialBalance: debtRecord.initialBalance,
+      minPayAmount: debtRecord.minPayAmount,
+      payDueDate: new Date(),
+      extraPayAmount: debtRecord.extraPayAmount,
+      userId: debtRecord.userId,
+    }));
+
+  await prisma.$transaction(
+    dataForCreation.map(d =>
+      prisma.financialRecord.upsert({
+        where: {
+          title_userId: {
+            userId,
+            title: d.title,
+          },
+        },
+        update: {
+          title: d.title,
+          initialBalance: d.initialBalance,
+          interestRate: d.interestRate,
+          minPayAmount: d.minPayAmount,
+        },
+        create: {
+          title: d.title,
+          initialBalance: d.initialBalance,
+          interestRate: d.interestRate,
+          type: d.type,
+          minPayAmount: d.minPayAmount,
+          periodicity: d.periodicity,
+          payDueDate: d.payDueDate,
+          userId: d.userId,
+        },
+      })
+    )
+  );
 
   // await prisma.financialRecord.upsert({
   //   where: {
@@ -100,32 +141,41 @@ export default async (ctx: Koa.Context) => {
         minPayAmount: record.minPayAmount,
       }));
 
-      return prisma.$transaction(dataToCreate.map(data => (
-        prisma.paymentSchedule.upsert({
-          where: {
-            paymentDate_title_userId: {
-              paymentDate: data.paymentDate,
-              title: data.title,
-              userId: data.userId,
-            }
-          },
-          create: { ...data },
-          update: { ...data }
-        })
-      )));
+      return prisma.$transaction(
+        dataToCreate.map(data =>
+          prisma.paymentSchedule.upsert({
+            where: {
+              paymentDate_title_userId: {
+                paymentDate: data.paymentDate,
+                title: data.title,
+                userId: data.userId,
+              },
+            },
+            create: { ...data },
+            update: { ...data },
+          })
+        )
+      );
     });
-    
+
     try {
       // Execute all save operations in parallel
       await Promise.all(saveTasks);
-      const waitForResult = await snowBallPaymentScheduleCalculator(userId, ctx);
+      const waitForResult = await snowBallPaymentScheduleCalculator(
+        userId,
+        ctx
+      );
 
       // eslint-disable-next-line no-unused-expressions
       await waitForResult;
       ctx.body = JSON.stringify(recordsResponse);
     } catch (error) {
       // Handle the error by returning or logging
-      ctx.throw(400, JSON.stringify({ error: 'Failed when trying to save financial records.' }),
+      ctx.throw(
+        400,
+        JSON.stringify({
+          error: 'Failed when trying to save financial records.',
+        })
       );
     } finally {
       await prisma.$disconnect();
