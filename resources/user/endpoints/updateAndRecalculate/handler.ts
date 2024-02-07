@@ -142,8 +142,6 @@ export default async (ctx: Koa.Context) => {
         minPayAmount: record.minPayAmount,
       }));
 
-      console.log(dataToCreate);
-
       return prisma.$transaction(
         dataToCreate.map(data =>
           prisma.paymentSchedule.upsert({
