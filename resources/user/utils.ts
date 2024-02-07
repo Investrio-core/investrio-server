@@ -1,6 +1,7 @@
 import { Context } from 'koa';
 import prisma from '../../db';
 import {
+  AllUserFinancialRecords,
   CardData,
   CombineGraphData,
   DebtRecord,
@@ -9,8 +10,9 @@ import {
   PayScheduleData,
   RecordData,
   TransformedData,
+  Error,
+  ICreateRecord
 } from './interface';
-import { error } from 'console';
 
 import { toFixed } from '../../utils/formatters';
 
@@ -26,12 +28,8 @@ function monthDiff(d1: Date, d2: Date) {
 }
 
 // This function just calculates the schedule for every debt record without taking in consideration the EXTRA PAYMENT AMOUNT - this should be handled in another function
-export async function allUserFinancialRecords(userId: string, dataForCreation?: unknown[]) {
+export async function allUserFinancialRecords(userId: string): Promise<Error | AllUserFinancialRecords[]> {
   const query: {title?: {in: string[]}} = {};
-
-  if (dataForCreation) {
-    query['title'] = { in: dataForCreation?.map((e: any) => e.title) };
-  }
 
   try {
     const userDebts = await prisma.financialRecord.findMany({
@@ -56,9 +54,9 @@ export async function allUserFinancialRecords(userId: string, dataForCreation?: 
       };
     }
 
-    const responseArray: any[] = [];
+    const responseArray: AllUserFinancialRecords[] = [];
     // needs to be optimized <>
-    userDebts.forEach((debt: any) => {
+    userDebts.forEach(debt => {
       let balance = debt.initialBalance;
       const monthly_ir = debt.interestRate / 12;
       const currentDate = new Date();
@@ -66,7 +64,7 @@ export async function allUserFinancialRecords(userId: string, dataForCreation?: 
       currentDate.setDate(1);
       currentDate.setHours(0, 0, 0, 0);
 
-      const debtObj: DebtRecord = {
+      const debtObj: AllUserFinancialRecords = {
         id: debt.id,
         title: debt.title,
         extraPayAmount: debt.extraPayAmount,
@@ -260,7 +258,6 @@ export function paymentGraphForStepTwo(
 function calculateXPayment(
   debts: any,
   extraPayment: boolean,
-  ctx: Context
 ): PaymentCalculationResult[] {
   const grouped: {
     [dateKey: string]: {
@@ -355,7 +352,7 @@ function calculateXPayment(
 
     // return mappedFilteredPaymentsResults;
     return extraPayment
-      ? applyExtraPaymentsToBalance(mappedFilteredPaymentsResults, ctx)
+      ? applyExtraPaymentsToBalance(mappedFilteredPaymentsResults)
       : paymentResults;
   } catch (error) {
     console.error(error);
@@ -433,7 +430,6 @@ function recalculateExtra(
 
 function applyExtraPaymentsToBalance(
   payments: PaymentCalculationResult[],
-  ctx: Context
 ): PaymentCalculationResult[] {
   let prevPayment: PaymentCalculationResult | null = null;
 
@@ -462,7 +458,7 @@ function applyExtraPaymentsToBalance(
     recalculateTotalPayment(payment);
 
     // Calculate balance for each schedule
-    calculateScheduleBalance(payments, payment, i);
+    calculateScheduleBalance(payment);
 
     // Update total interest paid for the payment schedule
     updateTotalInterestPaid(payment);
@@ -481,7 +477,7 @@ function applyExtraPaymentsToBalance(
     }
   }
 
-  upsertSnowballSchedule(payments, ctx);
+  upsertSnowballSchedule(payments);
   return payments;
 }
 
@@ -493,9 +489,7 @@ function recalculateTotalPayment(payment: PaymentCalculationResult): void {
 }
 
 function calculateScheduleBalance(
-  payments: PaymentCalculationResult[],
   payment: PaymentCalculationResult,
-  index: number
 ): void {
   payment.balance = payment.data.reduce(
     (sum, debt) => sum + debt.remainingBalance,
@@ -515,7 +509,7 @@ function updateTotalInterestPaid(payment: PaymentCalculationResult): void {
   );
 }
 
-async function upsertSnowballSchedule(payments: PaymentCalculationResult[], ctx: Context) {
+async function upsertSnowballSchedule(payments: PaymentCalculationResult[]) {
   try {
 
     await prisma.snowballPaymentSchedule.deleteMany({
@@ -589,7 +583,7 @@ export async function snowBallPaymentScheduleCalculator(userId: string, ctx: Con
     }
 
     // Issue here is that struct of Debt[] is different from the struct of PaymentSchedule[]
-    const paymentSchedule = await calculateXPayment(userDebtsPayments, true, ctx);
+    const paymentSchedule = await calculateXPayment(userDebtsPayments, true);
 
     // Return the payment schedule
     return paymentSchedule;

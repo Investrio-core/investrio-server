@@ -16,6 +16,8 @@ export default async (ctx: Koa.Context, next: Koa.Next) => {
 
   const accessToken = ctx.headers.authorization?.split(' ')[1];
 
+  console.log('HERE', ctx.headers.authorization, accessToken);
+
   if (!accessToken) {
     ctx.status = 400;
     ctx.body = { error: 'Unauthorized' };
@@ -24,6 +26,8 @@ export default async (ctx: Koa.Context, next: Koa.Next) => {
   }
 
   const { payload, expired } = verifyJWT(accessToken);
+
+  console.log(payload, expired);
 
   if (payload && !expired) {
     ctx.state.user = payload;

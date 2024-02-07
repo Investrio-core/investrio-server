@@ -4,8 +4,10 @@ import Koa from 'koa';
 import prisma from '../../../../db';
 
 export default async (ctx: Koa.Context) => {
-
   const { id: userId } = ctx.state.user;
+
+  const body = ctx.request.body as string[];
+  
   try{
   
     const userExists = await prisma.user.findUnique({
@@ -19,13 +21,13 @@ export default async (ctx: Koa.Context) => {
     await prisma.$transaction(
       [
         prisma.paymentSchedule.deleteMany({
-          where: { userId: userId } 
+          where: { userId: userId, FinancialRecordId: { in: [...body] } } 
         }),
         prisma.snowballPaymentSchedule.deleteMany({
           where: { userId: userId },
         }),
         prisma.financialRecord.deleteMany({ 
-          where: { userId: userId },
+          where: { userId: userId, id: { in: [...body] } },
         }),
       ],
     );
@@ -33,6 +35,7 @@ export default async (ctx: Koa.Context) => {
     ctx.status = 202;
     ctx.body={};
   } catch (error) {
+    console.log(error);
     ctx.throw(500, 'Internal server error');
   } finally {
     await prisma.$disconnect();

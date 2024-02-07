@@ -2,8 +2,6 @@ import jwt, { VerifyErrors } from 'jsonwebtoken';
 
 const SECRET_KEY = process.env.SECRET_KEY as string;
 
-console.log(SECRET_KEY);
-
 interface Payload {
     id: string,
     email: string,

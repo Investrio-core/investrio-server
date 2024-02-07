@@ -1,3 +1,5 @@
+import { DebitType, Periodicity } from '@prisma/client';
+
 export interface RecordData {
   currentDate: number;
   monthlyInterestPaid: number;
@@ -38,6 +40,50 @@ export interface DebtRecord {
     monthlyPayment: number;
     remainingBalance: number;
   }>;
+}
+
+export interface AllUserFinancialRecords {
+  id: string;
+  title: string;
+  extraPayAmount: number;
+  initialBalance: number;
+  monthlyInterestRateFraction: number;
+  minPayAmount: number;
+  data: {
+    currentDate: number;
+    monthlyInterestPaid: number;
+    monthlyPayment: number;
+    remainingBalance: number;
+  }[];
+}
+
+export interface Error {
+  error: string;
+  status: number;
+}
+
+export interface ICreateRecordRequestBody {
+  userId: string;
+  debtTitle: string;
+  interestRate: number;
+  debtType: DebitType;
+  periodicity: Periodicity;
+  initialBalance: number;
+  minPayAmount: number;
+  extraPayAmount: number;
+  payDueDate: Date;
+}
+
+export interface ICreateRecord {
+  interestRate: number;
+  title: string;
+  type: string;
+  periodicity: string;
+  initialBalance: number;
+  minPayAmount: number;
+  payDueDate: Date;
+  extraPayAmount: number;
+  userId: string;
 }
 
 export interface TransformedData {

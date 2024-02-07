@@ -1,6 +1,7 @@
 
 import Koa from 'koa';
 import { ICreateRecordRequestBody } from '../../interface';
+
 import {
   allUserFinancialRecords,
   snowBallPaymentScheduleCalculator,
@@ -18,6 +19,11 @@ export default async (ctx: Koa.Context) => {
 
   if (!userExists) {
     return ctx.throw(400);
+  }
+
+  if (body.length < 0) {
+    ctx.body = {};
+    return;
   }
 
   const titles = body.map((item: ICreateRecordRequestBody) => item.debtTitle);
@@ -41,10 +47,40 @@ export default async (ctx: Koa.Context) => {
     userId: debtRecord.userId,
   }));
 
-  await prisma.financialRecord.createMany({
-    data: dataForCreation,
-    skipDuplicates: true,
-  });
+  await prisma.$transaction(dataForCreation.map(d => (
+    prisma.financialRecord.upsert({
+      where: {
+        title_userId: {
+          userId,
+          title: d.title
+        }
+      },
+      update: {
+        title: d.title,
+        initialBalance: d.initialBalance,
+        interestRate: d.interestRate,
+        minPayAmount: d.minPayAmount
+      },
+      create: {
+        title: d.title,
+        initialBalance: d.initialBalance,
+        interestRate: d.interestRate,
+        type: d.type,
+        minPayAmount:d.minPayAmount,
+        periodicity: d.periodicity,
+        payDueDate: d.payDueDate,
+        userId: d.userId,
+      }
+    })
+  )));
+
+  // await prisma.financialRecord.upsert({
+  //   where: {
+  //     userId: userId
+  //   }
+  //   data: dataForCreation,
+  //   skipDuplicates: true,
+  // });
 
   try {
     const recordsResponse = await allUserFinancialRecords(userId);
@@ -64,11 +100,21 @@ export default async (ctx: Koa.Context) => {
         minPayAmount: record.minPayAmount,
       }));
 
-      return prisma.paymentSchedule.createMany({
-        data: dataToCreate,
-        skipDuplicates: true
-      });
+      return prisma.$transaction(dataToCreate.map(data => (
+        prisma.paymentSchedule.upsert({
+          where: {
+            paymentDate_title_userId: {
+              paymentDate: data.paymentDate,
+              title: data.title,
+              userId: data.userId,
+            }
+          },
+          create: { ...data },
+          update: { ...data }
+        })
+      )));
     });
+    
     try {
       // Execute all save operations in parallel
       await Promise.all(saveTasks);
@@ -85,6 +131,7 @@ export default async (ctx: Koa.Context) => {
       await prisma.$disconnect();
     }
   } catch (error) {
+    console.log(error);
     ctx.throw(500, JSON.stringify({ error: 'Internal server error' }));
   } finally {
     await prisma.$disconnect();

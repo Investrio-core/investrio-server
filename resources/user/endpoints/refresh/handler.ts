@@ -12,7 +12,7 @@ export default async (ctx: signUpContext) => {
     if (refreshPayload && !refreshExpired) {
       const user = omit(refreshPayload, 'exp', 'iat');
 
-      const newAccessToken = signJWT(user, '3m');
+      const newAccessToken = signJWT(user, '15m');
       ctx.body = JSON.stringify({ accessToken: newAccessToken });
     } else {
       ctx.throw(401);

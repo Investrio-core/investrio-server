@@ -1,17 +1,16 @@
 import Koa from 'koa';
 import prisma from '../../../../db';
-import { extraPaymentGraph } from '../../utils';
 
 export default async (ctx: Koa.Context) => {
   const { userId } = ctx.params;
-  
-  try {
-    const combined = await extraPaymentGraph(userId);
 
-    console.log(combined);
+  try {
+    const userFinancialRecords = await prisma.financialRecord.findMany({
+      where: { userId: userId },
+    });
   
     // Return the payment schedule
-    ctx.body = JSON.stringify(combined);
+    ctx.body = JSON.stringify(userFinancialRecords);
   } catch (error) {
     ctx.throw(500);
   } finally {
