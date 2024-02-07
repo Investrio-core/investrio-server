@@ -7,6 +7,8 @@ export default async (ctx: Koa.Context) => {
   const { id: userId } = ctx.state.user;
 
   const body = ctx.request.body as string[];
+
+  console.log(body);
   
   try{
   

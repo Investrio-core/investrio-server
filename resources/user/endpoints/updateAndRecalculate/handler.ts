@@ -86,7 +86,7 @@ export default async (ctx: Koa.Context) => {
       userId: debtRecord.userId,
     }));
 
-  await prisma.$transaction(
+  await Promise.all(
     dataForCreation.map(d =>
       prisma.financialRecord.upsert({
         where: {
@@ -142,6 +142,8 @@ export default async (ctx: Koa.Context) => {
         minPayAmount: record.minPayAmount,
       }));
 
+      console.log(dataToCreate);
+
       return prisma.$transaction(
         dataToCreate.map(data =>
           prisma.paymentSchedule.upsert({
@@ -172,6 +174,7 @@ export default async (ctx: Koa.Context) => {
       ctx.body = JSON.stringify(recordsResponse);
     } catch (error) {
       // Handle the error by returning or logging
+      console.log(error);
       ctx.throw(
         400,
         JSON.stringify({
