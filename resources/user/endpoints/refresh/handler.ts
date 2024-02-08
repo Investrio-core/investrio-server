@@ -8,7 +8,8 @@ export default async (ctx: signUpContext) => {
   const cookie = ctx.cookie;
 
   const refreshToken = cookie?.refreshToken;
-  console.log(ctx.req.headers);
+  console.log(ctx.cookies.get('refreshToken'));
+  console.log(ctx.request.headers);
   console.log(cookie);
 
   console.log(refreshToken);
