@@ -13,13 +13,10 @@ import routes from './routes';
 const app = new Koa();
 const router = new Router({ prefix: '/api' });
 
-console.log(process.env.WEB_URL);
-
 app.use(helmet());
 app.use(cookie());
 app.use(cors({
   credentials: true,
-  exposeHeaders: ['Set-Cookie'],
   origin: ctx => {
     const requestOrigin = ctx.get('Origin');
 
