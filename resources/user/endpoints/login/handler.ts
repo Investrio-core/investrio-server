@@ -1,26 +1,32 @@
 import prisma from '../../../../db';
 import { signUpContext } from './types';
 import bcrypt from 'bcrypt';
-import { signJWT } from '../../../../utils/jwt';
+import {
+  ACCESS_TOKEN_EXPIRES,
+  REFRESH_TOKEN_EXPIRES,
+  REFRESH_TOKEN_MAX_AGE,
+  signJWT,
+} from '../../../../utils/jwt';
 import { omit } from 'lodash';
 import { RequestError } from '../../../../types/http';
 import verifyGoogleToken from '../../../../services/googleTokenVerification';
 import logger from '../../../../logger';
 
 export default async (ctx: signUpContext) => {
-  const { email, password, type, googleAccessToken } = ctx.state.validatedRequest;
+  const { email, password, type, googleAccessToken } =
+    ctx.state.validatedRequest;
 
   try {
     const existingUser = await prisma.user.findUnique({
       where: {
         email,
-      }
+      },
     });
 
     if (!existingUser) {
       return ctx.throw(400, 'Invalid email or password');
     }
-    
+
     if (type === 'credentials' && password) {
       if (!existingUser.password) {
         return ctx.throw(400, 'Invalid email or password');
@@ -30,11 +36,11 @@ export default async (ctx: signUpContext) => {
         existingUser.password
       );
 
-      if (!verifiedPassword){
+      if (!verifiedPassword) {
         return ctx.throw(400, 'Invalid email or password');
-      }  
+      }
     } else if (type === 'credentials' && !password) {
-      return ctx.throw(400, 'Invalid email or password'); 
+      return ctx.throw(400, 'Invalid email or password');
     }
 
     if (type === 'google') {
@@ -48,20 +54,34 @@ export default async (ctx: signUpContext) => {
         return ctx.throw(400, 'Invalid email or password');
       }
     }
-   
+
+    // create access token
     const accessToken = await signJWT(
-      { id: existingUser.id, email: existingUser.email, name: existingUser.name },
-      '15m'
+      {
+        id: existingUser.id,
+        email: existingUser.email,
+        name: existingUser.name,
+      },
+      ACCESS_TOKEN_EXPIRES
     );
 
-    const refreshToken = await signJWT({ id: existingUser.id, email: existingUser.email, name: existingUser.name }, '24h');
+    const refreshToken = await signJWT(
+      {
+        id: existingUser.id,
+        email: existingUser.email,
+        name: existingUser.name,
+      },
+      REFRESH_TOKEN_EXPIRES
+    );
 
     ctx.cookies.set('refreshToken', refreshToken, {
-      maxAge: 60 * 60 * 24 * 1000, // 24h
+      maxAge: REFRESH_TOKEN_MAX_AGE,
       httpOnly: true,
+      sameSite: true,
+      secure: process.env.ENV === 'production' ? true : false,
     });
 
-    const userToReturn = { ...omit(existingUser, ['password']), accessToken }; 
+    const userToReturn = { ...omit(existingUser, ['password']), accessToken };
     ctx.body = JSON.stringify(userToReturn);
   } catch (error) {
     const typedError = error as RequestError;

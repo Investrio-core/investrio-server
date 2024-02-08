@@ -2,6 +2,11 @@ import jwt, { VerifyErrors } from 'jsonwebtoken';
 
 const SECRET_KEY = process.env.SECRET_KEY as string;
 
+export const ACCESS_TOKEN_EXPIRES = '30m';
+export const REFRESH_TOKEN_EXPIRES = '2d';
+
+export const REFRESH_TOKEN_MAX_AGE = 60 * 60 * 24 * 2 * 1000;
+
 interface Payload {
     id: string,
     email: string,

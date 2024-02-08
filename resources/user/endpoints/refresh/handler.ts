@@ -1,6 +1,7 @@
 import { signUpContext } from './types';
-import { signJWT, verifyJWT } from '../../../../utils/jwt';
+import { ACCESS_TOKEN_EXPIRES, signJWT, verifyJWT } from '../../../../utils/jwt';
 import { omit } from 'lodash';
+import logger from '../../../../logger';
 
 export default async (ctx: signUpContext) => {
   const cookie = ctx.cookie;
@@ -12,13 +13,15 @@ export default async (ctx: signUpContext) => {
     if (refreshPayload && !refreshExpired) {
       const user = omit(refreshPayload, 'exp', 'iat');
 
-      const newAccessToken = signJWT(user, '15m');
+      const newAccessToken = signJWT(user, ACCESS_TOKEN_EXPIRES);
       ctx.body = JSON.stringify({ accessToken: newAccessToken });
     } else {
       ctx.throw(401);
     }
 
   } catch (error) {
+    console.log(error);
+    logger.error(error);
     ctx.throw(500, 'Internal server error');
   }
 
