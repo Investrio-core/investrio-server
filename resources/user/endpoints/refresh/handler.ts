@@ -13,6 +13,9 @@ export default async (ctx: signUpContext) => {
   try {
     const { payload: refreshPayload, expired: refreshExpired } = verifyJWT(refreshToken);  
 
+    console.log(refreshExpired);
+    logger.log('info', refreshPayload,);
+
     if (refreshPayload && !refreshExpired) {
       const user = omit(refreshPayload, 'exp', 'iat');
 
