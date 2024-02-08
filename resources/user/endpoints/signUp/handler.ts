@@ -55,7 +55,7 @@ export default async (ctx: signUpContext) => {
       maxAge: REFRESH_TOKEN_MAX_AGE,
       httpOnly: true,
       sameSite: 'lax',
-      secure: process.env.ENV !== 'production' ? true : false,
+      secure: process.env.ENV !== 'dev' ? true : false,
     });
 
     const userToReturn = { ...omit(createdUser, ['password']), accessToken };
