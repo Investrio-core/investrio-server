@@ -19,6 +19,7 @@ app.use(helmet());
 app.use(cookie());
 app.use(cors({
   credentials: true,
+  exposeHeaders: ['Set-Cookie'],
   origin: ctx => {
     const requestOrigin = ctx.get('Origin');
 

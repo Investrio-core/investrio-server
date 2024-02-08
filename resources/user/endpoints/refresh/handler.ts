@@ -4,6 +4,7 @@ import { omit } from 'lodash';
 import logger from '../../../../logger';
 
 export default async (ctx: signUpContext) => {
+  console.log('object');
 
   const cookie = ctx.cookie;
 
