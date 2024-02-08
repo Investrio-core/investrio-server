@@ -407,6 +407,8 @@ function recalculateExtra(
       balanceWithInterest - (data.minPayAmount + available)
     );
 
+    console.log(balanceWithPayment);
+
     if (balanceWithPayment > 0) {
       data.remainingBalance = toFixed(balanceWithPayment);
       data.monthlyPayment = toFixed(data.minPayAmount + available);
@@ -415,6 +417,9 @@ function recalculateExtra(
     } else {
       data.remainingBalance = 0;
       data.monthlyInterestPaid = interest;
+      // console.log(toFixed(
+      //   data.minPayAmount + available - Math.abs(balanceWithPayment)
+      // ));
       data.monthlyPayment = toFixed(
         data.minPayAmount + available - Math.abs(balanceWithPayment)
       );
@@ -438,10 +443,6 @@ function applyExtraPaymentsToBalance(
     }
     
     const payment = payments[i];
-    
-    if (payment?.balance === 0) {
-      break;
-    }
     
     if (i > 0) {
       prevPayment = payments[i - 1];
