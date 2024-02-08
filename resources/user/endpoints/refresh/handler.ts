@@ -7,6 +7,9 @@ export default async (ctx: signUpContext) => {
   const cookie = ctx.cookie;
   const refreshToken = cookie?.refreshToken;
 
+  logger.log('info', refreshToken);
+  console.log(refreshToken);
+
   try {
     const { payload: refreshPayload, expired: refreshExpired } = verifyJWT(refreshToken);  
 
