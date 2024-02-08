@@ -4,9 +4,11 @@ import { omit } from 'lodash';
 import logger from '../../../../logger';
 
 export default async (ctx: signUpContext) => {
-  const cookie = ctx.cookie;
-  const refreshToken = cookie?.refreshToken;
 
+  const cookie = ctx.cookie;
+
+  const refreshToken = cookie?.refreshToken;
+  console.log(ctx.req.headers);
   console.log(cookie);
 
   console.log(refreshToken);
