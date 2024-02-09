@@ -77,8 +77,8 @@ export default async (ctx: signUpContext) => {
     ctx.cookies.set('refreshToken', refreshToken, {
       maxAge: REFRESH_TOKEN_MAX_AGE,
       httpOnly: true,
-      sameSite: true,
-      secure: process.env.ENV === 'production' ? true : false,
+      sameSite: 'lax',
+      secure: process.env.ENV !== 'development',
     });
 
     const userToReturn = { ...omit(existingUser, ['password']), accessToken };
