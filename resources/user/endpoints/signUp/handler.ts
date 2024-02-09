@@ -51,8 +51,6 @@ export default async (ctx: signUpContext) => {
       REFRESH_TOKEN_EXPIRES
     );
 
-    console.log(process.env.ENV);
-
     ctx.cookies.set('refreshToken', refreshToken, {
       maxAge: REFRESH_TOKEN_MAX_AGE,
       httpOnly: true,
