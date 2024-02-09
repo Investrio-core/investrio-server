@@ -372,9 +372,11 @@ function recalculatePrevious(payment: PaymentCalculationResult, extra: number) {
         available = Math.abs(newBalance);
         data.monthlyPayment = data.monthlyPayment + data.remainingBalance;
         data.remainingBalance = 0;
+        return Math.abs(newBalance);
       } else {
         data.monthlyPayment = data.monthlyPayment + available;
         data.remainingBalance = newBalance;
+        return 0;
         break;
       }
     }
@@ -407,8 +409,6 @@ function recalculateExtra(
       balanceWithInterest - (data.minPayAmount + available)
     );
 
-    console.log(balanceWithPayment);
-
     if (balanceWithPayment > 0) {
       data.remainingBalance = toFixed(balanceWithPayment);
       data.monthlyPayment = toFixed(data.minPayAmount + available);
@@ -426,8 +426,10 @@ function recalculateExtra(
       available = toFixed(Math.abs(balanceWithPayment));
     }
 
-    if (i === payment.data.length - 1 && available > 0) {
-      recalculatePrevious(payment, available);
+    if ((i === payment.data.length - 1 || payment.data[i - 1]?.remainingBalance > 0 ) && available > 0) {
+      const newAvailable = recalculatePrevious(payment, available);
+
+      available = newAvailable as number;
     }
   }
 }
