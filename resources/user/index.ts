@@ -10,6 +10,7 @@ import deleteAllEndpoint from './endpoints/deleteAll';
 import financialRecordsEndpoint from './endpoints/records';
 import updateStrategyEndpoint from './endpoints/updateAndRecalculate';
 import deleteEndpoint from './endpoints/delete';
+import updateExtraEndpoint from './endpoints/updateExtaPayment';
 
 const router = new Router();
 
@@ -23,6 +24,6 @@ router.use(deleteAllEndpoint.routes());
 router.use(financialRecordsEndpoint.routes());
 router.use(updateStrategyEndpoint.routes());
 router.use(deleteEndpoint.routes());
-
+router.use(updateExtraEndpoint.routes());
 
 export default router.routes();

@@ -75,6 +75,10 @@ export interface ICreateRecordRequestBody {
   payDueDate: Date;
 }
 
+export interface IEditExtraRequestBody {
+  extraPayAmount: number
+}
+
 export interface ICreateRecord {
   interestRate: number;
   title: string;
