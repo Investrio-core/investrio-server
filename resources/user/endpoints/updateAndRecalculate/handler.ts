@@ -116,14 +116,6 @@ export default async (ctx: Koa.Context) => {
     )
   );
 
-  // await prisma.financialRecord.upsert({
-  //   where: {
-  //     userId: userId
-  //   }
-  //   data: dataForCreation,
-  //   skipDuplicates: true,
-  // });
-
   try {
     const recordsResponse = await allUserFinancialRecords(userId);
     if ('error' in recordsResponse) {

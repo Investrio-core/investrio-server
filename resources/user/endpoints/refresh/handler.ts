@@ -6,8 +6,6 @@ import logger from '../../../../logger';
 export default async (ctx: signUpContext) => {
   const cookie = ctx.cookie;
 
-  console.log(cookie);
-
   const refreshToken = cookie?.refreshToken;
 
   try {
