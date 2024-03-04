@@ -82,3 +82,18 @@ enum DebitType {
 enum Periodicity {
   MONTH
 }
+
+model BudgetMonth {
+  id              String                    @id @default(cuid())
+  createdAt       DateTime                  @default(now()) @map("created_at")
+  income          Float
+  needs           Json
+  wants           Json
+  savings         Json
+  debts           Json
+  month           Float
+  year            Float
+  userId          String
+
+  @@unique([userId, year, month])
+}
