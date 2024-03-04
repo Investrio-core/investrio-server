@@ -23,8 +23,6 @@ export default async (ctx: Koa.Context, next: Koa.Next) => {
     return;
   }
 
-  console.log(accessToken);
-
   const { payload, expired } = verifyJWT(accessToken);
 
   if (payload && !expired) {
