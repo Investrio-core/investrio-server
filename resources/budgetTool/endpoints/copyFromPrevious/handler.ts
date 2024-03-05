@@ -10,8 +10,8 @@ export default async (ctx: Context) => {
   const currentMonth = Number(month);
   const currentYear = Number(year);
 
-  const previousMonth = currentMonth === 0 ? 12 : month - 1;
-  const previousYear = previousMonth === 12 ? currentYear - 1 : currentYear;
+  const previousMonth = currentMonth === 0 ? 11 : month - 1;
+  const previousYear = previousMonth === 11 ? currentYear - 1 : currentYear;
 
   try {
     const currentBudgetMonth = await prisma.budgetMonth.findFirst({
@@ -24,9 +24,23 @@ export default async (ctx: Context) => {
       where: { userId, year: previousYear, month: previousMonth },
     });
 
-    if (!previousBudgetMonth) {
+    let result;
+
+    if (!previousBudgetMonth && !currentBudgetMonth) {
+      result = await prisma.budgetMonth.create({
+        data: { debts: [], wants: [], needs: [], savings: [], income: 0, userId: userId, year: currentYear, month: currentMonth },
+      });
       ctx.status = 200;
-      ctx.body = {};
+      ctx.body = result;
+
+      return;
+    } else if (!previousBudgetMonth && currentBudgetMonth) {
+      result = await prisma.budgetMonth.update({
+        where: { id: currentBudgetMonth.id },
+        data: { debts: [], wants: [], needs: [], savings: [], income: 0, userId: userId, year: currentYear, month: currentMonth },
+      });
+      ctx.status = 200;
+      ctx.body = result;
 
       return;
     }
@@ -39,7 +53,6 @@ export default async (ctx: Context) => {
       'income',
       'userId',
     ]) as BudgetMonthToCreate;
-    let result;
 
     if (currentBudgetMonth) {
       result = await prisma.budgetMonth.update({
