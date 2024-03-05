@@ -27,11 +27,8 @@ export default async (ctx: Context) => {
     let result;
 
     if (!previousBudgetMonth && !currentBudgetMonth) {
-      result = await prisma.budgetMonth.create({
-        data: { debts: [], wants: [], needs: [], savings: [], income: 0, userId: userId, year: currentYear, month: currentMonth },
-      });
       ctx.status = 200;
-      ctx.body = result;
+      ctx.body = {};
 
       return;
     } else if (!previousBudgetMonth && currentBudgetMonth) {
