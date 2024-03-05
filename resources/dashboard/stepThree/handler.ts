@@ -1,6 +1,6 @@
 import Koa from 'koa';
-import prisma from '../../../../db';
-import { StepThreeInfo } from '../../utils';
+import prisma from '../../../db';
+import { StepThreeInfo } from '../utils';
 
 export default async (ctx: Koa.Context) => {
   const { userId } = ctx.params;

@@ -1,5 +1,5 @@
 import Koa from 'koa';
-import prisma from '../../../../db';
+import prisma from '../../../db';
 
 export default async (ctx: Koa.Context) => {
   const { userId } = ctx.params;

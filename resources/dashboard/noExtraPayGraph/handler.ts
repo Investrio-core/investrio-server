@@ -1,7 +1,7 @@
 import Koa from 'koa';
-import prisma from '../../../../db';
-import { allUserFinancialRecords, paymentGraphForStepTwo } from '../../utils';
-import { PayScheduleData } from '../../interface';
+import prisma from '../../../db';
+import { allUserFinancialRecords, paymentGraphForStepTwo } from '../utils';
+import { PayScheduleData } from '../interface';
 
 export default async (ctx: Koa.Context) => {
   const { userId } = ctx.params;

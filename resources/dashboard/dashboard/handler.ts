@@ -1,5 +1,6 @@
 import Koa from 'koa';
-import prisma from '../../../../db';
+import prisma from '../../../db';
+import logger from '../../../logger';
 
 export default async (ctx: Koa.Context) => {
   const { userId } = ctx.params;
@@ -28,6 +29,7 @@ export default async (ctx: Koa.Context) => {
     // Return the payment schedule
     ctx.body = JSON.stringify(filteredPayments);
   } catch (error) {
+    logger.error(error);
     ctx.throw(500);
   } finally {
     await prisma.$disconnect();

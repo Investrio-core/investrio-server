@@ -3,6 +3,6 @@ import handler from './handler';
 
 const router = new Router();
 
-router.get('/dashboard/:userId', handler);
+router.get('/:userId', handler);
 
 export default router;

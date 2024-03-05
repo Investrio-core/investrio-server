@@ -1,10 +1,10 @@
 import Koa from 'koa';
 import mount from 'koa-mount';
-import servicesResource from '../resources/user';
+import dashboardResource from '../resources/dashboard';
 import budgetToolResource from '../resources/budgetTool';
 
 const authorizedRoutes = (app: Koa) => {
-  app.use(mount('/user', servicesResource));
+  app.use(mount('/dashboard', dashboardResource));
   app.use(mount('/budget', budgetToolResource));
 };
 

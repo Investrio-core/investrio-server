@@ -1,12 +1,13 @@
 
 import Koa from 'koa';
-import { ICreateRecordRequestBody } from '../../interface';
+import { ICreateRecordRequestBody } from '../interface';
 import {
   allUserFinancialRecords,
   snowBallPaymentScheduleCalculator,
-} from '../../utils';
+} from '../utils';
+import logger from '../../../logger';
 
-import prisma from '../../../../db';
+import prisma from '../../../db';
 
 export default async (ctx: Koa.Context) => {
   const body = ctx.request.body as ICreateRecordRequestBody[];
@@ -85,6 +86,7 @@ export default async (ctx: Koa.Context) => {
       await prisma.$disconnect();
     }
   } catch (error) {
+    logger.error(error);
     ctx.throw(500, JSON.stringify({ error: 'Internal server error' }));
   } finally {
     await prisma.$disconnect();
