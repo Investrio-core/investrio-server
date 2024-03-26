@@ -9,6 +9,7 @@ import {
 } from '../../../../utils/jwt';
 import { omit } from 'lodash';
 import { RequestError } from '../../../../types/http';
+import moment from 'moment';
 
 export default async (ctx: signUpContext) => {
   const { name, email, password } = ctx.state.validatedRequest;
@@ -37,7 +38,7 @@ export default async (ctx: signUpContext) => {
     }
 
     const createdUser = await prisma.user.create({
-      data: user,
+      data: { ...user, isTrial: true, isActive: false, trialEndsAt: moment().add(7, 'd').toISOString() },
     });
 
     // create access token

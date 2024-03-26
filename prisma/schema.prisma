@@ -62,21 +62,34 @@ model FinancialRecord {
 }
 
 model User {
-  name            String
-  createdAt       DateTime                  @default(now()) @map("created_at")
-  email           String                    @unique
-  id              String                    @id @default(cuid())
-  password        String?
-  lastLogin       DateTime                  @default(now()) @map("last_login")
-  debts           FinancialRecord[]
-  paymentSchedule PaymentSchedule[]
-  snowball        SnowballPaymentSchedule[]
+  name                  String
+  createdAt             DateTime                  @default(now()) @map("created_at")
+  email                 String                    @unique
+  id                    String                    @id @default(cuid())
+  password              String?
+  lastLogin             DateTime                  @default(now()) @map("last_login")
+  debts                 FinancialRecord[]
+  paymentSchedule       PaymentSchedule[]
+  snowball              SnowballPaymentSchedule[]
+  stripeCustomerId      String?    
+  subscriptionStatus    SubscriptionStatus?
+  subscriptionCancelAt  DateTime?         
+  subscriptionStartedOn DateTime?         
+  isActive              Boolean?                    
+  isTrial               Boolean?
+  trialEndsAt           DateTime?
 
   @@map("users")
 }
 
 enum DebitType {
   CreditCard
+}
+
+enum SubscriptionStatus {
+  active
+  cancelled
+  failed
 }
 
 enum Periodicity {
