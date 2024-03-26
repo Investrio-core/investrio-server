@@ -50,7 +50,7 @@ export default async (ctx: signUpContext) => {
           price: process.env.STRIPE_PRODUCT_ID,
         },
       ],
-      trial_period_days: 1,
+      trial_period_days: 7,
       trial_settings: {
         end_behavior: {
           missing_payment_method: 'pause',
