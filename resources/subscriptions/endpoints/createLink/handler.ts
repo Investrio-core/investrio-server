@@ -11,7 +11,6 @@ export default async (ctx: Koa.Context) => {
       success_url: `${process.env.WEB_URL}/billing?success=true`,
       cancel_url: `${process.env.WEB_URL}/billing?failed=true`,
       customer: user.stripeCustomerId!,
-      
       line_items: [
         {
           price: process.env.STRIPE_PRODUCT_ID, quantity: 1

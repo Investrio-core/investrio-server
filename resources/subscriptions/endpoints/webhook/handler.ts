@@ -32,7 +32,7 @@ export default async (ctx: Koa.Context) => {
       current_period_start: number;
       status: string;
       period_end: number;
-      total: number
+      total: number;
     };
 
     const user = await prisma.user.findFirst({
@@ -42,6 +42,17 @@ export default async (ctx: Koa.Context) => {
     switch (event.type) {
       case 'invoice.paid': {
         if (user && data.total > 0) {
+          const trialSubscription = await stripe.subscriptions.list({
+            customer: user.stripeCustomerId!,
+            status: 'trialing',
+          });
+
+          if (trialSubscription.data.length > 0) {
+            const id = trialSubscription.data[0].id;
+
+            await stripe.subscriptions.cancel(id, {});
+          }
+
           await prisma.user.update({
             where: {
               id: user.id,
@@ -62,20 +73,6 @@ export default async (ctx: Koa.Context) => {
       }
 
       case 'customer.subscription.updated': {
-
-        if (data.status === 'paused') {
-          if (user) {
-            await prisma.user.update({
-              where: {
-                id: user.id,
-              },
-              data: {
-                isTrial: false
-              },
-            });
-          }
-        }
-
         if (data.status === 'active') {
           if (user) {
             await prisma.user.update({
@@ -89,7 +86,10 @@ export default async (ctx: Koa.Context) => {
           }
         }
 
-        if (data?.canceled_at) {
+        if (
+          data?.canceled_at &&
+          !event.data.object.trial_start
+        ) {
           if (user) {
             await prisma.user.update({
               where: {
@@ -112,17 +112,27 @@ export default async (ctx: Koa.Context) => {
 
       case 'customer.subscription.deleted': {
         if (user) {
-          await prisma.user.update({
-            where: {
-              id: user.id,
-            },
-            data: {
-              isActive: false,
-              isTrial: false,
-              subscriptionStatus: 'cancelled',
-              subscriptionCancelAt: null,
-            },
+          const listSubs = await stripe.subscriptions.list({
+            customer: user.stripeCustomerId!,
+            status: 'all',
           });
+
+          if (
+            (listSubs.data.length > 1 && !event.data.object.trial_start) ||
+            listSubs.data.length === 1
+          ) {
+            await prisma.user.update({
+              where: {
+                id: user.id,
+              },
+              data: {
+                isActive: false,
+                isTrial: false,
+                subscriptionStatus: 'cancelled',
+                subscriptionCancelAt: null,
+              },
+            });
+          }
         }
 
         logger.info(`Handle event type ${event.type}`);
@@ -139,7 +149,7 @@ export default async (ctx: Koa.Context) => {
               id: user.id,
             },
             data: {
-              isActive: (status === 'canceled' || !user.isActive) ? false : true,
+              isActive: status === 'canceled' || !user.isActive ? false : true,
               isTrial: false,
               subscriptionStatus:
                 status === 'canceled' ? 'cancelled' : 'failed',
