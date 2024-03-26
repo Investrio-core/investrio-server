@@ -9,5 +9,6 @@ export default (app: Koa) => {
   publicRoutes(app);
   
   app.use(authMiddleware);
+  
   protectedRoutes(app);
 };

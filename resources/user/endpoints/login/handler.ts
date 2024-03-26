@@ -11,6 +11,7 @@ import { omit } from 'lodash';
 import { RequestError } from '../../../../types/http';
 import verifyGoogleToken from '../../../../services/googleTokenVerification';
 import logger from '../../../../logger';
+import addTrial from './addTrial';
 
 export default async (ctx: signUpContext) => {
   const { email, password, type, googleAccessToken } =
@@ -54,6 +55,8 @@ export default async (ctx: signUpContext) => {
         return ctx.throw(400, 'Invalid email or password');
       }
     }
+
+    await addTrial(existingUser);
 
     // create access token
     const accessToken = await signJWT(
