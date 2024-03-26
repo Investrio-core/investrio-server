@@ -157,6 +157,9 @@ export default async (ctx: Koa.Context) => {
       default:
         logger.error(`Unhandled event type ${event.type}`);
     }
+
+    ctx.status = 200;
+    ctx.body = {};
   } catch (error) {
     const typedError = error as RequestError;
     logger.error(typedError.message);
