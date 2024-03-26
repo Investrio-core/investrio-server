@@ -32,6 +32,7 @@ export default async (ctx: Koa.Context) => {
       current_period_start: number;
       status: string;
       period_end: number;
+      total: number
     };
 
     const user = await prisma.user.findFirst({
@@ -40,7 +41,7 @@ export default async (ctx: Koa.Context) => {
 
     switch (event.type) {
       case 'invoice.paid': {
-        if (user) {
+        if (user && data.total > 0) {
           await prisma.user.update({
             where: {
               id: user.id,
@@ -61,6 +62,20 @@ export default async (ctx: Koa.Context) => {
       }
 
       case 'customer.subscription.updated': {
+
+        if (data.status === 'paused') {
+          if (user) {
+            await prisma.user.update({
+              where: {
+                id: user.id,
+              },
+              data: {
+                isTrial: false
+              },
+            });
+          }
+        }
+
         if (data.status === 'active') {
           if (user) {
             await prisma.user.update({
@@ -103,6 +118,7 @@ export default async (ctx: Koa.Context) => {
             },
             data: {
               isActive: false,
+              isTrial: false,
               subscriptionStatus: 'cancelled',
               subscriptionCancelAt: null,
             },
@@ -144,7 +160,7 @@ export default async (ctx: Koa.Context) => {
               id: user.id,
             },
             data: {
-              stripeCustomerId: null
+              stripeCustomerId: null,
             },
           });
         }

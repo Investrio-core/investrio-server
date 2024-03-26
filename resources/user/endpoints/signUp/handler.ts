@@ -10,6 +10,7 @@ import {
 import { omit } from 'lodash';
 import { RequestError } from '../../../../types/http';
 import moment from 'moment';
+import stripe from '../../../../services/stripe';
 
 export default async (ctx: signUpContext) => {
   const { name, email, password } = ctx.state.validatedRequest;
@@ -37,8 +38,34 @@ export default async (ctx: signUpContext) => {
       user.password = hashedPassword;
     }
 
+    const customer = await stripe.customers.create({
+      email: user?.email,
+      name: user?.name,
+    });
+
+    const trialSubscription = await stripe.subscriptions.create({
+      customer: customer.id,
+      items: [
+        {
+          price: process.env.STRIPE_PRODUCT_ID,
+        },
+      ],
+      trial_period_days: 1,
+      trial_settings: {
+        end_behavior: {
+          missing_payment_method: 'pause',
+        },
+      },
+    });
+
     const createdUser = await prisma.user.create({
-      data: { ...user, isTrial: true, isActive: false, trialEndsAt: moment().add(7, 'd').toISOString() },
+      data: {
+        ...user,
+        stripeCustomerId: customer.id,
+        isTrial: true,
+        isActive: false,
+        trialEndsAt: moment(trialSubscription.trial_end! * 1000).toISOString(),
+      },
     });
 
     // create access token
